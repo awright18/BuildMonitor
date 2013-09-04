@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using BuildMonitor;
 using BuildMonitor.Domain;
+using BuildMonitor.Growl;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -51,19 +52,25 @@ namespace BuildMonitorPackage
             if (sbm != null)
             {
                 sbm.AdviseUpdateSolutionEvents(this, out updateSolutionEventsCookie);
+                
+                
             }
 
             // Must hold a reference to the solution events object or the events wont fire, garbage collection related
             events = GetDTE().Events.SolutionEvents;
+            
+            
             events.Opened += Solution_Opened;
 
             PrintLine("Build monitor initialized");
             PrintLine("Path to persist data: {0}", Settings.RepositoryPath);
-
+            
             monitor.SolutionBuildFinished = b =>
             {
                 Print("[{0}] Time Elapsed: {1}ms  \t\t", b.SessionBuildCount, b.SolutionBuildTime);
                 PrintLine("Session build time: {0}ms\n", b.SessionMillisecondsElapsed);
+                new SendBuildCompleteGrowlNotification(b.SolutionName, new TimeSpan(b.SolutionBuildTime)).Execute();
+
             };
 
             monitor.ProjectBuildFinished = b => PrintLine(" - {0}ms\t-- {1} --", b.MillisecondsElapsed, b.ProjectName);
@@ -144,7 +151,7 @@ namespace BuildMonitorPackage
         {
             // This method is called when the entire solution starts to build.
             monitor.SolutionBuildStart(solution);
-
+            
             return VSConstants.S_OK;
         }
 

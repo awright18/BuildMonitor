@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("BuildMonitorPackage")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Daniel Vinntreus")]
+[assembly: AssemblyCompany("Adam Wright")]
 [assembly: AssemblyProduct("BuildMonitorPackage")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
