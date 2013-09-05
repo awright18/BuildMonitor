@@ -16,7 +16,7 @@ namespace BuildMonitorPackage
     [Guid(GuidList.guidBuildMonitorPackagePkgString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
-    sealed class BuildMonitorPackage : Package, IVsUpdateSolutionEvents2
+    sealed class BuildMonitorPackage : Package, IVsUpdateSolutionEvents2,IVsSolutionLoadEvents, IVsSolutionEvents, IVsSolutionLoadManager
     {
         private DTE dte;
         private readonly Monitor monitor;
@@ -43,12 +43,20 @@ namespace BuildMonitorPackage
         protected override void Initialize()
         {
             base.Initialize();
+            
+            IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+            object objLoadMgr = this;   //the class that implements IVsSolutionManager
+            pSolution.SetProperty((int)__VSPROPID4.VSPROPID_ActiveSolutionLoadManager, objLoadMgr);
+          
+            uint id = 0;
+            pSolution.AdviseSolutionEvents(this, out id);
 
             //if invalid data, adjust it
             dataAdjuster.Adjust();
 
             // Get solution build manager
             sbm = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
+           
             if (sbm != null)
             {
                 sbm.AdviseUpdateSolutionEvents(this, out updateSolutionEventsCookie);
@@ -59,7 +67,7 @@ namespace BuildMonitorPackage
             // Must hold a reference to the solution events object or the events wont fire, garbage collection related
             events = GetDTE().Events.SolutionEvents;
             
-            
+          
             events.Opened += Solution_Opened;
 
             PrintLine("Build monitor initialized");
@@ -232,6 +240,99 @@ namespace BuildMonitorPackage
             // Unadvise all events
             if (sbm != null && updateSolutionEventsCookie != 0)
                 sbm.UnadviseUpdateSolutionEvents(updateSolutionEventsCookie);
+        }
+
+        public int OnAfterBackgroundSolutionLoadComplete()
+        {
+           GrowlNotifier.Instance.Notify(new SolutionLoadedGrowlNotification(GetSolutionName()));
+           return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeBackgroundSolutionLoadBegins()
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            pfShouldDelayLoadToNextIdle = false;
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName,
+            IVsSolutionLoadManagerSupport pSLMgrSupport)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnDisconnect()
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
         }
     }
 }

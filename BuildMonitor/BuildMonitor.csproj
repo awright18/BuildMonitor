@@ -73,6 +73,7 @@
     <Compile Include="Growl\GrowlNotifier.cs" />
     <Compile Include="Growl\SolutionBuiltGrowlNotification.cs" />
     <Compile Include="Growl\SendBuildCompleteGrowlNotification.cs" />
+    <Compile Include="Growl\SolutionLoadedGrowlNotification.cs" />
     <Compile Include="icon.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
