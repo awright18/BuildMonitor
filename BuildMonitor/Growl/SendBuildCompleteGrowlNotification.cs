@@ -18,17 +18,17 @@ namespace BuildMonitor.Growl
         {
             _solutionName = solutionName;
             
-            if (buildTime.Hours > 0)
+            if (!string.IsNullOrWhiteSpace(_time) && buildTime.Hours > 0)
             {
                 _time = string.Format("{0} hours, {1} minutes, {2} seconds",buildTime.Hours, buildTime.Minutes, buildTime.Seconds);
             }
 
-            if (string.IsNullOrWhiteSpace(_time) && buildTime.Minutes > 0)
+            if (!string.IsNullOrWhiteSpace(_time) && buildTime.Minutes > 0)
             {
                 _time = string.Format("{0} minutes, {1} seconds", buildTime.Minutes, buildTime.Seconds);
             }
 
-            if (string.IsNullOrWhiteSpace(_time) && buildTime.Seconds > 0)
+            if (!string.IsNullOrWhiteSpace(_time) && buildTime.Seconds > 0)
             {
                 _time = string.Format("{0} seconds", buildTime.Seconds);
             }
